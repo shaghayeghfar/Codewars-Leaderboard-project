@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Codewars Leaderboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="controls">
+            <h1>Codewars Leaderboard</h1>
+            <section>
+                <input type="text" id="user-input" placeholder="Enter usernames (e.g. user1,user2,user3)" />
+                <button id="fetch-btn">Fetch Leaderboard</button>
+            </section>
+            <p id="error-message"></p>
+            <section>
+                <label for="language-select">Select Ranking:</label>
+                <select id="language-select">
+                    <option value="overall">Overall</option>
+                </select>
+            </section>
+        </div>
+        <div class="table-area">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Clan</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body"></tbody>
+            </table>
+        </div>
+    </div>
+    <script src="index.mjs"></script>
+</body>
+
+</html>
