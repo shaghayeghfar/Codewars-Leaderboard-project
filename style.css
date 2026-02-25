@@ -1,11 +1,11 @@
+/* BODY & CONTAINER */
 body {
   font-family: Arial, sans-serif;
   margin: 20px;
   background-color: #f8f8f8;
-  color: #333;
+  color: #222;
 }
 
-/* Container to center content */
 .container {
   max-width: 800px;
   margin: 0 auto;
@@ -15,10 +15,10 @@ body {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* Controls section */
+/*  CONTROLS  */
 .controls h1 {
-  margin-bottom: 15px;
   font-size: 24px;
+  margin-bottom: 15px;
 }
 
 .controls section {
@@ -39,13 +39,20 @@ button {
   cursor: pointer;
 }
 
-/* Error message */
+/* ERROR MESSAGE  */
 #error-message {
-  color: red;
+  color: #b00020;
+  background-color: #fff0f0;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-weight: bold;
   font-size: 13px;
+
+  display: none;
+  margin-bottom: 8px;
 }
 
-/* Table styling */
+/* TABLE  */
 .table-area table {
   width: 100%;
   border-collapse: collapse;
@@ -59,12 +66,19 @@ button {
   text-align: left;
 }
 
+.table-area th {
+  background-color: #f0f0f0;
+}
+
+/* DROPDOWN  */
 #language-select {
   width: 150px;
   padding: 4px;
   font-size: 14px;
 }
 
-.table-area th {
-  background-color: #f0f0f0;
+/*TOP SCORER HIGHLIGHT */
+.top-scorer {
+  background-color: #ffeaa7;
+  font-weight: bold;
 }

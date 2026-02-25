@@ -4,9 +4,10 @@ const languageSelect = document.getElementById("language-select");
 const leaderboardBody = document.getElementById("leaderboard-body");
 const errorMessage = document.getElementById("error-message");
 
-let currentUsernames = [];
+let allUserData = [];
 
-// FETCH BUTTON
+//FETCH BUTTON
+
 fetchBtn.addEventListener("click", async () => {
   const usernames = userInput.value
     .split(",")
@@ -15,93 +16,153 @@ fetchBtn.addEventListener("click", async () => {
 
   if (usernames.length === 0) {
     errorMessage.textContent = "Please enter at least one username.";
+    errorMessage.style.display = "block";
     return;
   }
 
   errorMessage.textContent = "";
-  currentUsernames = usernames;
-
-  // Fetch first user to populate dropdown dynamically
-  try {
-    const response = await fetch(
-      `https://www.codewars.com/api/v1/users/${usernames[0]}`,
-    );
-    if (!response.ok) throw new Error("User not found");
-
-    const data = await response.json();
-    populateDropdown(data);
-
-    fetchLeaderboard(currentUsernames, languageSelect.value);
-  } catch (err) {
-    errorMessage.textContent = `Error fetching data for ${usernames[0]}`;
-  }
-});
-
-// DROPDOWN CHANGE
-languageSelect.addEventListener("change", () => {
-  const selectedLanguage = languageSelect.value;
-  if (currentUsernames.length === 0) return;
-  fetchLeaderboard(currentUsernames, selectedLanguage);
-});
-
-// POPULATE DROPDOWN
-function populateDropdown(userData) {
-  const languages = userData.ranks.languages || {};
-  languageSelect.innerHTML = "";
-  const overallOption = document.createElement("option");
-  overallOption.value = "overall";
-  overallOption.textContent = "Overall";
-  languageSelect.appendChild(overallOption);
-
-  // Add all languages dynamically
-  for (const lang in languages) {
-    const option = document.createElement("option");
-    option.value = lang;
-    option.textContent = lang;
-    languageSelect.appendChild(option);
-  }
-}
-
-//FETCH LEADERBOARD
-async function fetchLeaderboard(usernames, selectedLanguage) {
+  errorMessage.style.display = "none";
   leaderboardBody.innerHTML = "";
+  allUserData = [];
+
+  const fetchedUsers = [];
+  const invalidUsers = [];
 
   for (const username of usernames) {
     try {
       const response = await fetch(
         `https://www.codewars.com/api/v1/users/${username}`,
       );
-      if (!response.ok) throw new Error("User not found");
+
+      // USER DOES NOT EXIST
+      if (response.status === 404) {
+        invalidUsers.push(username);
+        continue; // skip this user
+      }
+
+      // OTHER SERVER ERROR
+      if (!response.ok) {
+        errorMessage.textContent = "API error occurred.";
+        errorMessage.style.display = "block";
+        continue;
+      }
 
       const data = await response.json();
-      addUserToTable(data, selectedLanguage);
-    } catch (err) {
-      errorMessage.textContent = `Error fetching data for ${username}`;
+      fetchedUsers.push(data);
+    } catch (error) {
+      errorMessage.textContent = "Network error. Please check your internet.";
+      errorMessage.style.display = "block";
+      return;
     }
   }
-}
 
-// ===== ADD USER TO TABLE =====
-function addUserToTable(userData, selectedLanguage) {
-  const row = document.createElement("tr");
-
-  const usernameCell = document.createElement("td");
-  usernameCell.textContent = userData.username;
-
-  const clanCell = document.createElement("td");
-  clanCell.textContent = userData.clan || "-";
-
-  const scoreCell = document.createElement("td");
-  if (selectedLanguage === "overall") {
-    scoreCell.textContent = userData.ranks.overall?.score || 0;
-  } else {
-    scoreCell.textContent =
-      userData.ranks.languages[selectedLanguage]?.score || 0;
+  if (invalidUsers.length > 0) {
+    errorMessage.textContent = `These users were not found: ${invalidUsers.join(", ")}`;
+    errorMessage.style.display = "block";
   }
 
-  row.appendChild(usernameCell);
-  row.appendChild(clanCell);
-  row.appendChild(scoreCell);
+  if (fetchedUsers.length === 0) return;
 
-  leaderboardBody.appendChild(row);
+  allUserData = fetchedUsers;
+
+  populateDropdown(allUserData);
+  renderLeaderboard(allUserData, languageSelect.value);
+});
+
+//DROPDOWN CHANGE
+
+languageSelect.addEventListener("change", () => {
+  if (allUserData.length === 0) return;
+  renderLeaderboard(allUserData, languageSelect.value);
+});
+
+//POPULATE DROPDOWN
+
+function populateDropdown(users) {
+  const languageSet = new Set();
+
+  users.forEach((user) => {
+    Object.keys(user.ranks.languages || {}).forEach((lang) => {
+      languageSet.add(lang);
+    });
+  });
+
+  languageSelect.innerHTML = "";
+
+  const overallOption = document.createElement("option");
+  overallOption.value = "overall";
+  overallOption.textContent = "Overall";
+  languageSelect.appendChild(overallOption);
+
+  Array.from(languageSet)
+    .sort()
+    .forEach((lang) => {
+      const option = document.createElement("option");
+      option.value = lang;
+      option.textContent = lang;
+      languageSelect.appendChild(option);
+    });
+}
+
+//RENDER LEADERBOARD
+
+function renderLeaderboard(users, selectedLanguage) {
+  leaderboardBody.innerHTML = "";
+
+  const filteredUsers = users.filter((user) => {
+    if (selectedLanguage === "overall") {
+      return user.ranks.overall?.score != null;
+    } else {
+      return user.ranks.languages[selectedLanguage]?.score != null;
+    }
+  });
+
+  filteredUsers.sort((a, b) => {
+    const scoreA =
+      selectedLanguage === "overall"
+        ? a.ranks.overall?.score || 0
+        : a.ranks.languages[selectedLanguage]?.score || 0;
+
+    const scoreB =
+      selectedLanguage === "overall"
+        ? b.ranks.overall?.score || 0
+        : b.ranks.languages[selectedLanguage]?.score || 0;
+
+    return scoreB - scoreA;
+  });
+
+  if (filteredUsers.length === 0) return;
+
+  const topScore =
+    selectedLanguage === "overall"
+      ? filteredUsers[0].ranks.overall?.score
+      : filteredUsers[0].ranks.languages[selectedLanguage]?.score;
+
+  filteredUsers.forEach((user) => {
+    const row = document.createElement("tr");
+
+    const usernameCell = document.createElement("td");
+    usernameCell.textContent = user.username;
+
+    const clanCell = document.createElement("td");
+    clanCell.textContent = user.clan || "-";
+
+    const scoreCell = document.createElement("td");
+    const score =
+      selectedLanguage === "overall"
+        ? user.ranks.overall?.score || 0
+        : user.ranks.languages[selectedLanguage]?.score || 0;
+
+    scoreCell.textContent = score;
+
+    row.appendChild(usernameCell);
+    row.appendChild(clanCell);
+    row.appendChild(scoreCell);
+
+    if (score === topScore) {
+      row.classList.add("top-scorer");
+    }
+
+    leaderboardBody.appendChild(row);
+  });
 }
