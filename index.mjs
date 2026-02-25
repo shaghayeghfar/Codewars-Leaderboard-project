@@ -1,3 +1,5 @@
+import { getSortedUsers } from "./leaderboardLogic.mjs";
+
 const userInput = document.getElementById("user-input");
 const fetchBtn = document.getElementById("fetch-btn");
 const languageSelect = document.getElementById("language-select");
@@ -6,7 +8,7 @@ const errorMessage = document.getElementById("error-message");
 
 let allUserData = [];
 
-//FETCH BUTTON
+// FETCH BUTTON
 
 fetchBtn.addEventListener("click", async () => {
   const usernames = userInput.value
@@ -34,13 +36,11 @@ fetchBtn.addEventListener("click", async () => {
         `https://www.codewars.com/api/v1/users/${username}`,
       );
 
-      // USER DOES NOT EXIST
       if (response.status === 404) {
         invalidUsers.push(username);
-        continue; // skip this user
+        continue;
       }
 
-      // OTHER SERVER ERROR
       if (!response.ok) {
         errorMessage.textContent = "API error occurred.";
         errorMessage.style.display = "block";
@@ -69,14 +69,14 @@ fetchBtn.addEventListener("click", async () => {
   renderLeaderboard(allUserData, languageSelect.value);
 });
 
-//DROPDOWN CHANGE
+// DROPDOWN CHANGE
 
 languageSelect.addEventListener("change", () => {
   if (allUserData.length === 0) return;
   renderLeaderboard(allUserData, languageSelect.value);
 });
 
-//POPULATE DROPDOWN
+// POPULATE DROPDOWN
 
 function populateDropdown(users) {
   const languageSet = new Set();
@@ -104,32 +104,12 @@ function populateDropdown(users) {
     });
 }
 
-//RENDER LEADERBOARD
+// RENDER LEADERBOARD
 
 function renderLeaderboard(users, selectedLanguage) {
   leaderboardBody.innerHTML = "";
 
-  const filteredUsers = users.filter((user) => {
-    if (selectedLanguage === "overall") {
-      return user.ranks.overall?.score != null;
-    } else {
-      return user.ranks.languages[selectedLanguage]?.score != null;
-    }
-  });
-
-  filteredUsers.sort((a, b) => {
-    const scoreA =
-      selectedLanguage === "overall"
-        ? a.ranks.overall?.score || 0
-        : a.ranks.languages[selectedLanguage]?.score || 0;
-
-    const scoreB =
-      selectedLanguage === "overall"
-        ? b.ranks.overall?.score || 0
-        : b.ranks.languages[selectedLanguage]?.score || 0;
-
-    return scoreB - scoreA;
-  });
+  const filteredUsers = getSortedUsers(users, selectedLanguage);
 
   if (filteredUsers.length === 0) return;
 
