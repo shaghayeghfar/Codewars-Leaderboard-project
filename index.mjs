@@ -6,6 +6,12 @@ const languageSelect = document.getElementById("language-select");
 const leaderboardBody = document.getElementById("leaderboard-body");
 const errorMessage = document.getElementById("error-message");
 
+// DELETE ERROEMESSAGE
+userInput.addEventListener("input", () => {
+  errorMessage.textContent = "";
+  errorMessage.style.display = "none";
+});
+
 let allUserData = [];
 
 // FETCH BUTTON
@@ -38,11 +44,11 @@ fetchBtn.addEventListener("click", async () => {
 
       if (response.status === 404) {
         invalidUsers.push(username);
-        continue;
+        continue; // skip to next username
       }
 
       if (!response.ok) {
-        errorMessage.textContent = "API error occurred.";
+        errorMessage.textContent = `API error for ${username}.`;
         errorMessage.style.display = "block";
         continue;
       }
@@ -50,12 +56,11 @@ fetchBtn.addEventListener("click", async () => {
       const data = await response.json();
       fetchedUsers.push(data);
     } catch (error) {
-      errorMessage.textContent = "Network error. Please check your internet.";
-      errorMessage.style.display = "block";
-      return;
+      console.error(`Network error for ${username}:`, error);
+      invalidUsers.push(username + " (network issue)");
+      continue;
     }
   }
-
   if (invalidUsers.length > 0) {
     errorMessage.textContent = `These users were not found: ${invalidUsers.join(", ")}`;
     errorMessage.style.display = "block";
