@@ -6,13 +6,20 @@ const languageSelect = document.getElementById("language-select");
 const leaderboardBody = document.getElementById("leaderboard-body");
 const errorMessage = document.getElementById("error-message");
 
+let allUserData = [];
+
 // DELETE ERROEMESSAGE
 userInput.addEventListener("input", () => {
   errorMessage.textContent = "";
   errorMessage.style.display = "none";
 });
 
-let allUserData = [];
+// Fetch on Enter key
+userInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    fetchBtn.click();
+  }
+});
 
 // FETCH BUTTON
 
